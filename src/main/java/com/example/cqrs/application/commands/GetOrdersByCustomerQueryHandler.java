@@ -8,7 +8,6 @@ import com.example.cqrs.domain.OrderRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class GetOrdersByCustomerQueryHandler implements Command.Handler<GetOrdersByCustomerQuery, List<OrderDto>> {
@@ -31,7 +30,7 @@ public class GetOrdersByCustomerQueryHandler implements Command.Handler<GetOrder
                         .quantity(order.getQuantity())
                         .price(order.getPrice())
                         .totalPrice(order.getTotalPrice())
-                        .status(order.getOrderStatus())
+                        .status(order.getStatus())
                         .createdAt(order.getCreatedAt())
                         .build())
                 .toList();

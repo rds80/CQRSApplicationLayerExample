@@ -15,6 +15,11 @@ spring:
     console:
       enabled: false
 
+  test:
+    constructor:
+      autowire:
+        mode: all
+
 logging:
   level:
     com.example.cqrs: INFO

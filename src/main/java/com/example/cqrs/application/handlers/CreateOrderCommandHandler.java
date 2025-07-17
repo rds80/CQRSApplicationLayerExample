@@ -8,6 +8,8 @@ import com.example.cqrs.domain.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 @RequiredArgsConstructor
 public class CreateOrderCommandHandler implements Command.Handler<CreateOrderCommand, OrderDto> {
@@ -21,6 +23,7 @@ public class CreateOrderCommandHandler implements Command.Handler<CreateOrderCom
                 .productName(createOrderCommand.productName())
                 .quantity(createOrderCommand.quantity())
                 .price(createOrderCommand.price())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         Order savedOrder = orderRepository.save(order);
@@ -32,7 +35,7 @@ public class CreateOrderCommandHandler implements Command.Handler<CreateOrderCom
                 .quantity(savedOrder.getQuantity())
                 .price(savedOrder.getPrice())
                 .totalPrice(savedOrder.getTotalPrice())
-                .status(savedOrder.getOrderStatus())
+                .status(savedOrder.getStatus())
                 .createdAt(savedOrder.getCreatedAt())
                 .build();
     }

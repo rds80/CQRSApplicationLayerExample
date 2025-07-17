@@ -4,16 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name ="orders")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
+@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Order {
@@ -41,11 +38,11 @@ public class Order {
     private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderStatus status;
 
     {
         this.createdAt = LocalDateTime.now();
-        this.orderStatus = OrderStatus.PENDING;
+        this.status = OrderStatus.PENDING;
     }
 
     public BigDecimal getTotalPrice() {

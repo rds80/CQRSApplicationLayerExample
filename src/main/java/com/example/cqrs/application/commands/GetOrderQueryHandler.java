@@ -26,7 +26,7 @@ public class GetOrderQueryHandler implements Command.Handler<GetOrderQuery, Orde
                 .quantity(order.getQuantity())
                 .price(order.getPrice())
                 .totalPrice(order.getTotalPrice())
-                .status(order.getOrderStatus())
+                .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .build();
     }
