@@ -5,6 +5,7 @@ import com.example.cqrs.application.commands.CreateOrderCommand;
 import com.example.cqrs.application.dto.OrderDto;
 import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
+import com.example.cqrs.domain.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ public class CreateOrderCommandHandler implements Command.Handler<CreateOrderCom
     @Override
     public OrderDto handle(CreateOrderCommand createOrderCommand) {
         Order order = Order.builder()
+                .status(OrderStatus.PENDING)
                 .customerName(createOrderCommand.customerName())
                 .productName(createOrderCommand.productName())
                 .quantity(createOrderCommand.quantity())

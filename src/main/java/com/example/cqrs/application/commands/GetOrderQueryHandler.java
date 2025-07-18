@@ -5,14 +5,14 @@ import com.example.cqrs.application.dto.OrderDto;
 import com.example.cqrs.application.queries.GetOrderQuery;
 import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class GetOrderQueryHandler implements Command.Handler<GetOrderQuery, OrderDto> {
 
     private final OrderRepository orderRepository;
-
-    public GetOrderQueryHandler(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
 
     @Override
     public OrderDto handle(GetOrderQuery getOrderQuery) {
