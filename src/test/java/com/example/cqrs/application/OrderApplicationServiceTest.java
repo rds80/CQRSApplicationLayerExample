@@ -4,6 +4,7 @@ package com.example.cqrs.application;
 import com.example.cqrs.application.commands.CreateOrderCommand;
 import com.example.cqrs.application.dto.OrderDto;
 import com.example.cqrs.application.queries.GetOrderQuery;
+import com.example.cqrs.application.queries.GetOrdersByCustomerQuery;
 import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
 import com.example.cqrs.domain.OrderStatus;
@@ -17,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -62,7 +65,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     void givenOrderIsAlreadyCreated_WhengetOrderAsyncIsCalled_ThenVerifyOrderIsRetrievedSuccessfully() throws ExecutionException, InterruptedException {
-        var currentDateTime = LocalDateTime.now();
+        var currentDateTime =LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
 
         Order order = Order.builder()
                 .status(OrderStatus.SHIPPED)
@@ -92,5 +95,44 @@ public class OrderApplicationServiceTest {
         assertThat(result.productName()).isEqualTo("Phone");
         assertThat(result.quantity()).isEqualTo(1);
         assertThat(result.price()).isEqualTo(BigDecimal.valueOf(599.99));
+        assertThat(result.createdAt()).isEqualTo(currentDateTime);
+    }
+
+    @Test
+    void getOrdersByCustomerAsync_ShouldRetrieveCustomerOrders() throws Exception {
+        var currentDateTime =LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+
+        Order order1 = Order.builder()
+                .status(OrderStatus.SHIPPED)
+                .customerName("Bob Johnson")
+                .productName("Tablet")
+                .quantity(1)
+                .price(BigDecimal.valueOf(299.99))
+                .createdAt(currentDateTime)
+                .build();
+
+        Order order2 = Order.builder()
+                .status(OrderStatus.SHIPPED)
+                .customerName("Bob Johnson")
+                .productName("Keyboard")
+                .quantity(1)
+                .price(BigDecimal.valueOf(79.99))
+                .createdAt(currentDateTime)
+                .build();
+
+        orderRepository.save(order1);
+        orderRepository.save(order2);
+
+        GetOrdersByCustomerQuery query = new GetOrdersByCustomerQuery("Bob Johnson");
+
+        // When
+        CompletableFuture<List<OrderDto>> future = orderApplicationService.getOrdersByCustomerAsync(query);
+        List<OrderDto> results = future.get();
+
+        // Then
+        assertThat(results).hasSize(2);
+        assertThat(results).allMatch(order -> order.customerName().equals("Bob Johnson"));
+        assertThat(results).extracting(OrderDto::productName)
+                .containsExactlyInAnyOrder("Tablet", "Keyboard");
     }
 }
