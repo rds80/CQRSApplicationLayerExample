@@ -1,6 +1,7 @@
 package com.example.cqrs.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,13 +22,14 @@ public class Order {
 
     @Column(nullable = false)
     @NonNull
+    @NotBlank(message = "Customer name cannot be empty")
     private String customerName;
 
     @Column(nullable = false)
     private String productName;
 
     @Column(nullable = false)
-    @NonNull
+    @NonNull()
     private Integer quantity;
 
     @Column(nullable = false)

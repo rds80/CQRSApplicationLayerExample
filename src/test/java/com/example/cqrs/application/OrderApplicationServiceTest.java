@@ -9,6 +9,7 @@ import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
 import com.example.cqrs.domain.OrderStatus;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 
 
 @SpringBootTest(classes = com.example.cqrs.CqrsApplication.class)
@@ -134,5 +136,35 @@ public class OrderApplicationServiceTest {
         assertThat(results).allMatch(order -> order.customerName().equals("Bob Johnson"));
         assertThat(results).extracting(OrderDto::productName)
                 .containsExactlyInAnyOrder("Tablet", "Keyboard");
+    }
+
+    @Test
+    void getOrderAsync_WithNonExistentId_ShouldThrowException() {
+        // Given
+        GetOrderQuery query = new GetOrderQuery(999L);
+
+        // When & Then
+        CompletableFuture<OrderDto> future = orderApplicationService.getOrderAsync(query);
+        assertThrows(Exception.class, future::get);
+    }
+
+
+    @Test
+    void givenOrderCreationHasException_WhenCreateOrderCommandCalled_ThenVerifyExceptionIsThrown() {
+        CreateOrderCommand createOrderCommand = CreateOrderCommand.builder()
+                .customerName("")
+                .productName("Product")
+                .quantity(0)
+                .price(BigDecimal.valueOf(-1))
+                .build();
+
+        CompletableFuture<OrderDto> future = orderApplicationService.createOrderAsync(createOrderCommand);
+        // Capture the exception
+        ExecutionException exception = assertThrows(ExecutionException.class, future::get);
+
+        // Check the actual cause (the business exception)
+        Throwable cause = exception.getCause();
+        assertThat(cause).isInstanceOf(ConstraintViolationException.class);
+        assertThat(cause.getMessage()).contains("Customer name cannot be empty");
     }
 }
