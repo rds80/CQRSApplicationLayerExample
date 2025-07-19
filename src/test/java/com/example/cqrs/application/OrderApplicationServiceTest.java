@@ -8,14 +8,11 @@ import com.example.cqrs.application.queries.GetOrdersByCustomerQuery;
 import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
 import com.example.cqrs.domain.OrderStatus;
-import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestConstructor;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -195,5 +192,15 @@ public class OrderApplicationServiceTest {
         assertThat(persistedOrder.getCustomerName()).isEqualTo("Alice Cooper");
         assertThat(persistedOrder.getProductName()).isEqualTo("Guitar");
         assertThat(persistedOrder.getStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    void givenCustomerDoesNotExistInDatabase_WhengetOrdersByCustomerIsCalled_ThenVerifyEmptyListIsReturned() throws Exception {
+        GetOrdersByCustomerQuery getOrdersByCustomerQuery = new GetOrdersByCustomerQuery("NonExistentCustomer");
+
+        CompletableFuture<List<OrderDto>> future = orderApplicationService.getOrdersByCustomerAsync(getOrdersByCustomerQuery);
+        var results = future.get();
+
+        assertThat(results).isEmpty();
     }
 }
