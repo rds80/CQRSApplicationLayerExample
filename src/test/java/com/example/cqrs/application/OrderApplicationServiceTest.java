@@ -171,4 +171,29 @@ public class OrderApplicationServiceTest {
         assertThat(cause).isInstanceOf(ConstraintViolationException.class);
         assertThat(cause.getMessage()).contains("Customer name cannot be empty");
     }
+
+    @Test
+    void givenOrderIsCreated_WhenCreateOrderCommandIsCalled_VerifyOrderIsPersistedToDatabase() throws Exception {
+        // Given
+        CreateOrderCommand createOrderCommand = CreateOrderCommand.builder()
+                .customerName("Alice Cooper")
+                .productName("Guitar")
+                .quantity(1)
+                .price(BigDecimal.valueOf(1299.99))
+                .build();
+
+        long initialCount = orderRepository.count();
+
+        // When
+        CompletableFuture<OrderDto> future = orderApplicationService.createOrderAsync(createOrderCommand);
+        OrderDto result = future.get();
+
+        // Then
+        assertThat(orderRepository.count()).isEqualTo(initialCount + 1);
+
+        Order persistedOrder = orderRepository.findById(result.id()).orElseThrow();
+        assertThat(persistedOrder.getCustomerName()).isEqualTo("Alice Cooper");
+        assertThat(persistedOrder.getProductName()).isEqualTo("Guitar");
+        assertThat(persistedOrder.getStatus()).isEqualTo(OrderStatus.PENDING);
+    }
 }
