@@ -139,13 +139,17 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    void getOrderAsync_WithNonExistentId_ShouldThrowException() {
+    void givenOrderIdDoesNotExist_WhenGeOrderQueryHandlerCalled_ThenVerifyErrorMessage() {
         // Given
         GetOrderQuery query = new GetOrderQuery(999L);
 
         // When & Then
         CompletableFuture<OrderDto> future = orderApplicationService.getOrderAsync(query);
-        assertThrows(Exception.class, future::get);
+        ExecutionException exception = assertThrows(ExecutionException.class, future::get);
+        Throwable cause = exception.getCause();
+        String errorMessage = cause.getMessage();
+        assertThat(errorMessage).isEqualTo("Order not found with: 999");
+
     }
 
 
