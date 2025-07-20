@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.is;
 
@@ -115,5 +116,23 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.length()", is(2)))
                 .andExpect(jsonPath("$[0].customerName", is("David Bowie")))
                 .andExpect(jsonPath("$[1].customerName", is("David Bowie")));
+    }
+
+    @Test
+    void givenInvalidOrderIsCreated_WhenPostApiToCreateOrderIsCalled_ThenVerifyApiReturnsBadRequest() throws  Exception {
+        CreateOrderCommand createOrderCommand = new CreateOrderCommand(
+                "",
+                "Guitar",
+                1,
+                BigDecimal.valueOf(1299.99)
+        );
+
+        String requestJson = objectMapper.writeValueAsString(createOrderCommand);
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                        .andDo(print())
+                        .andExpect(status().isBadRequest());
     }
 }
