@@ -4,6 +4,7 @@ import com.example.cqrs.application.commands.CreateOrderCommand;
 import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,10 +36,13 @@ public class OrderControllerTest {
 
     private MockMvc mockMvc;
 
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    }
+
     @Test
     void givenOrderNeedsToBeCreated_WhenPostApiToCreateOrderIsCalled_ThenVerifyOrderIsCreated() throws Exception {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-
         CreateOrderCommand createOrderCommand = new CreateOrderCommand(
                 "Alice Cooper",
                 "Guitar",
@@ -65,8 +69,6 @@ public class OrderControllerTest {
 
     @Test
     void givenOrderAlreadyExists_WhenGetApiToGetOrderIsCalled_ThenVerifyOrderIsRetrieved() throws  Exception {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-
         Order order = Order.builder()
                 .customerName("Charlie Brown")
                 .productName("Drums")
@@ -83,5 +85,35 @@ public class OrderControllerTest {
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.customerName").value("Charlie Brown"));
+    }
+
+    @Test
+    void givenMultipleOrdersExistForCustomers_WhenGetApiIsCalledToSearchByCustomer_ThenVerifyOrdersForCustomerAreRetrieved() throws Exception {
+        Order order1 = Order.builder()
+                .customerName("David Bowie")
+                .productName("Microphone")
+                .quantity(2)
+                .price(BigDecimal.valueOf(199.99))
+                .build();
+
+        Order order2 = Order.builder()
+                .customerName("David Bowie")
+                .productName("Amplifier")
+                .quantity(1)
+                .price(BigDecimal.valueOf(599.99))
+                .build();
+
+        orderRepository.saveAndFlush(order1);
+        orderRepository.saveAndFlush(order2);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/orders/customer/{customerName}", "David Bowie"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(2)))
+                .andExpect(jsonPath("$[0].customerName", is("David Bowie")))
+                .andExpect(jsonPath("$[1].customerName", is("David Bowie")));
     }
 }
