@@ -1,6 +1,7 @@
 package com.example.cqrs.application.web;
 
 import com.example.cqrs.application.commands.CreateOrderCommand;
+import com.example.cqrs.domain.Order;
 import com.example.cqrs.domain.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.is;
 
@@ -35,7 +36,7 @@ public class OrderControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void givenOrderNeedsToBeCreated_WhenCreateOrderCommandIsCalled_ThenVerifyOrderIsCreated() throws Exception {
+    void givenOrderNeedsToBeCreated_WhenPostApiToCreateOrderIsCalled_ThenVerifyOrderIsCreated() throws Exception {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
         CreateOrderCommand createOrderCommand = new CreateOrderCommand(
@@ -60,7 +61,27 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.productName", is("Guitar")))
                 .andExpect(jsonPath("$.quantity", is(1)))
                 .andExpect(jsonPath("$.price", is(1299.99)));
+    }
 
+    @Test
+    void givenOrderAlreadyExists_WhenGetApiToGetOrderIsCalled_ThenVerifyOrderIsRetrieved() throws  Exception {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
+        Order order = Order.builder()
+                .customerName("Charlie Brown")
+                .productName("Drums")
+                .quantity(1)
+                .price(BigDecimal.valueOf(899.99))
+                .build();
+
+        Order savedOrder = orderRepository.save(order);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/orders/{id}", savedOrder.getId()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.customerName").value("Charlie Brown"));
     }
 }
