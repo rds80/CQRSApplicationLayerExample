@@ -42,9 +42,19 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    {
-        this.createdAt = LocalDateTime.now();
-        this.status = OrderStatus.PENDING;
+
+    @Version
+    private Long version;
+
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = OrderStatus.PENDING;
+        }
     }
 
     public BigDecimal getTotalPrice() {

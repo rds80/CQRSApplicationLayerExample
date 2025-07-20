@@ -22,8 +22,8 @@ public class OrderController {
         this.orderApplicationService = orderApplicationService;
     }
 
-    @PostMapping
-    public CompletableFuture<ResponseEntity<OrderDto>> createOrder(@Valid @RequestBody CreateOrderCommand createOrderCommand) {
+    @PostMapping()
+    public CompletableFuture<ResponseEntity<OrderDto>> createOrderAsync(@Valid @RequestBody CreateOrderCommand createOrderCommand) {
         return orderApplicationService.createOrderAsync(createOrderCommand)
                 .thenApply(ResponseEntity::ok);
     }
